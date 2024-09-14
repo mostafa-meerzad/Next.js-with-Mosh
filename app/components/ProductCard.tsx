@@ -1,10 +1,11 @@
 // "use client"; // move this directive to the AddToCard component
 
 import AddToCard from "./AddToCard";
+import styles from "./ProductCard/ProductCard.module.css"
 
 const ProductCard = () => {
   return (
-    <div>
+    <div className={styles.card}>
       ProductCard
       {/* 
        server components cannot handle user interactivity
