@@ -17,12 +17,16 @@
 }
 
 body {
+  display: grid;
+  place-content: center;
+  min-height: 100svh;
+
   color: rgb(var(--foreground-rgb));
   /* background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
+    to bottom,
+    transparent,
+    rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb)); */
-    background-color: rgb(var(--background-end-rgb));
+  background-color: rgb(var(--background-end-rgb));
 }

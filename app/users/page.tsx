@@ -2,6 +2,7 @@ const page = async () => {
   interface User {
     id: number;
     name: string;
+    email: string;
   }
   // here is how to call an API in next.js server component
   // API calls must be handled in server-components
@@ -11,7 +12,9 @@ const page = async () => {
 
   // cache:"no-store" = disable the caching mechanism
   // next: {revalidate: 10} = revalidate data every 10 seconds
-  const data = await fetch("https://jsonplaceholder.typicode.com/users", {cache:"no-store"});
+  const data = await fetch("https://jsonplaceholder.typicode.com/users", {
+    cache: "no-store",
+  });
 
   // const data = await fetch("https://jsonplaceholder.typicode.com/users");
 
@@ -22,13 +25,26 @@ const page = async () => {
 
   return (
     <div>
-      users page
-      <p>{new Date().toLocaleString()}</p>
       <h1>Users</h1>
       <br />
-      {users.map((user) => (
-        <div key={user.id}>{user.name}</div>
-      ))}
+      <table className="table table-sm table-zebra">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <br />
+      users page
     </div>
   );
 };
