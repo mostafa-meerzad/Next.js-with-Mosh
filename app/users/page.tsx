@@ -1,6 +1,11 @@
 import UserTable from "./UserTable";
 
-const page = async () => {
+
+interface Props {
+  searchParams:{sortOrder: string}
+}
+
+const page = async ({searchParams: {sortOrder}}: Props) => {
   // here is how to call an API in next.js server component
   // API calls must be handled in server-components
 
@@ -16,11 +21,13 @@ const page = async () => {
 
   // disabling cache in a page makes it dynamic it is rendered at request time
 
+
+
   return (
     <div>
       <h1>Users</h1>
       <br />
-      <UserTable />
+      <UserTable order={sortOrder}/>
       {/* UserTable is moved to a separate component and it is only used in this page so it make sense to put it next to this page component not into the components folder */}
       <br />
       users page

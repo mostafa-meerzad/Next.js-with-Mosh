@@ -17,9 +17,10 @@
 }
 
 body {
-  display: grid;
-  place-content: center;
+  /* display: grid; */
+  /* place-content: center; */
   min-height: 100svh;
+  /* padding: 5rem; */
 
   color: rgb(var(--foreground-rgb));
   /* background: linear-gradient(
@@ -29,4 +30,10 @@ body {
     )
     rgb(var(--background-start-rgb)); */
   background-color: rgb(var(--background-end-rgb));
+}
+
+@layer base {
+  h1 {
+    @apply font-bold text-2xl p-4 pb-0;
+  }
 }
