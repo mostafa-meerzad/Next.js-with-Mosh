@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import UserTable from "./UserTable";
 
 
@@ -27,7 +28,12 @@ const page = async ({searchParams: {sortOrder}}: Props) => {
     <div>
       <h1>Users</h1>
       <br />
+      {/* use react's Suspense component to show a fallback UI while the data is being fetched */}
+      {/* <Suspense fallback={<div>loading...</div>}> */}
+
       <UserTable order={sortOrder}/>
+      {/* </Suspense> */}
+      {/* using Suspense component is not Next.js way */}
       {/* UserTable is moved to a separate component and it is only used in this page so it make sense to put it next to this page component not into the components folder */}
       <br />
       users page

@@ -1,6 +1,12 @@
+import NewUserPage from "./NewUserPage";
+
 const page = () => {
   return (
-    <div>new user</div>
-  )
-}
-export default page
+    <div>
+      <h1>new user page</h1>
+      <br />
+      <NewUserPage/>
+    </div>
+  );
+};
+export default page;
