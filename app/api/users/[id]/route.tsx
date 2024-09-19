@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import schema from "./schema";
 
 // just like the way we access route params in the components we do the same thing here
 // one way
@@ -51,9 +52,13 @@ export async function PUT(
   // update the user
   // return the updated user
 
-   if(!body.name) return NextResponse.json({ error: "name is required" }, {status: 400});
+//    if(!body.name) return NextResponse.json({ error: "name is required" }, {status: 400});
 
-   if(params.id > 10) return NextResponse.json({ error: "user not found"}, {status: 404});
+// validation using zod
+
+const validation = schema.safeParse(body)
+
+   if(!validation.success) return NextResponse.json( validation.error.errors, {status: 404});
 
    return NextResponse.json({ id: 5, name: body.name    });
 

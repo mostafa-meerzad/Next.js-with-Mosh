@@ -1,6 +1,7 @@
 // a route handler is a function that handles an http request
 
 import { NextRequest, NextResponse } from "next/server";
+import schema from "./[id]/schema";
 
 // export a get function for handling get request
 
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
   // validate the data we get
   // if invalid return 400
   // else, return the data
-  if (!body.name) return NextResponse.json({ error: "name is required!" }, {status: 400});
+  // ------------
+  // validation using zod
+  const validation = schema.safeParse(body)
+  if (!validation.success) return NextResponse.json( validation.error.errors , {status: 400});
   return NextResponse.json({ id: 11, name: body.name }, {status: 201});// 201 to indicate an object was created
 }
