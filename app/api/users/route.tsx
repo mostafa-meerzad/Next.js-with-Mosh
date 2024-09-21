@@ -2,17 +2,23 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import schema from "./[id]/schema";
-
+import prisma from "@/prisma/client";
 // export a get function for handling get request
 
 // if you add this request argument in the route-handler the Next.js will not cache the results, if you remove it will do so
 // export a function with GET name to handle get requests
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   // return NextResponse.json("hello")
-  return NextResponse.json([
-    { id: 1, name: "John" },
-    { id: 2, name: "Sam" },
-  ]);
+  // return NextResponse.json([
+    // { id: 1, name: "John" },
+    // { id: 2, name: "Sam" },
+  // ]);
+
+
+  // now instead of hard coding the user objects we query the DB to get the users
+  const users =await prisma.user.findMany()
+  console.log(users)
+  return NextResponse.json(users)
 }
 
 // to handle post requests export a function with POST to handle post requests
