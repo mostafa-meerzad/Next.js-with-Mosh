@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   // return NextResponse.json({ id: 10, name: body.name, price: body.price });
 
   const newProduct = await prisma.product.create({
-    data: { name: body.name, price: body.price },
+    data: { name: body.name, price: parseInt(body.price) },
   });
   return NextResponse.json({ newProduct }, { status: 201 });
 }
