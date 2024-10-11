@@ -304,3 +304,294 @@ export default Error;
 ```
 
 same as before we can have `error.tsx` file specific for each route if we need to.
+
+## Handling API Calls
+
+As a best practice inside the app router create a `api` folder and put all your api endpoints init.
+a route handler is a function that handles an http request
+
+### Getting a collection of objects
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+// if you add this request argument in the route-handler `function GET(request: NextRequest)` the Next.js will not cache the results, if you remove it will do so `function GET()`
+
+// export a function with GET name to handle get requests
+export function GET(request: NextRequest) {
+  // return NextResponse.json("hello")
+  // return NextResponse.json([
+  // { id: 1, name: "John" },
+  // { id: 2, name: "Sam" },
+  // ]);
+
+  // now instead of hard coding the user objects we query the DB to get the users
+  const users = [{ user1 }, { user2 }];
+  // console.log(users);
+  return NextResponse.json(users);
+}
+```
+
+### Getting a single object
+
+just like the way we access route params in the page components we do the same thing here but the params are passed as the second argument to the route handler
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+// one way
+// interface Props {
+//   params: {
+// id: number;
+//   };
+// }
+
+export function GET(request: NextRequest, props: Props) {}
+// or destructure it
+export function GET(request: NextRequest, { params }: Props) {}
+// or
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {}
+```
+
+### Creating an object
+
+just like the GET request handler we export a function with `POST` name which is responsible for handling POST requests
+
+```typescript
+export async function POST(request: NextRequest) {
+  const body = await request.json(); // request.json() return a promise!
+  //----------------------------
+  // in this function we want to return whatever get in the request body
+  return NextResponse.json(body);
+}
+```
+
+### Updating an object
+
+```typescript
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // todo
+  // validate the request, if not valid return 400
+  // find product and update in db, if not found return 404
+  // return updated product object
+}
+```
+
+### Deleting an object
+
+```typescript
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // todo
+  // if invalid id return 404
+  // delete product and return
+  if (params.id > 10) {
+    return NextResponse.json({ error: "product not found" }, { status: 404 });
+  }
+  return NextResponse.json({}, { status: 201 });
+}
+```
+
+## Validating Requests with Zod
+
+### What is Zod?
+
+Zod is a TypeScript-first schema declaration and validation library. It's designed to help you define the structure of your data in a clear, type-safe way. With Zod, you can validate user inputs, API responses, or any other form of data that needs to adhere to a specific structure. It works seamlessly with TypeScript, ensuring that the types you define with Zod are automatically inferred throughout your codebase.
+
+### Key Features:
+
+- **Schema Declaration**: Define the shape of your data, including types, length constraints, and custom validation rules.
+- **Validation**: Validate inputs against the declared schema, and get detailed error messages when validation fails.
+- **Type Inference**: Automatically infers TypeScript types from the schema you define.
+
+### How to Use Zod with Next.js and TypeScript
+
+1. **Install Zod**
+
+   First, install Zod in your Next.js project:
+
+   ```bash
+   npm install zod
+   ```
+
+2. **Defining Schemas**
+
+   Zod allows you to define schemas that represent the shape of your data. For example, if you're building a form with user inputs, you can define a Zod schema for the data:
+
+   ```ts
+   import { z } from "zod";
+
+   const userSchema = z.object({
+     name: z.string().min(1, "Name is required"),
+     email: z.string().email("Invalid email address"),
+     age: z.number().int().min(18, "Must be at least 18 years old"),
+   });
+   ```
+
+   This schema defines that the data should have a `name` (required string), `email` (valid email), and `age` (integer, at least 18).
+
+3. **Using Zod for Form Validation in a Next.js API Route**
+
+   When handling form submissions in a Next.js API route, you can use Zod to validate the incoming data:
+
+   ```ts
+   // /pages/api/register.ts
+   import { NextApiRequest, NextApiResponse } from "next";
+   import { z } from "zod";
+
+   // Define a schema for the request body
+   const registerSchema = z.object({
+     name: z.string().min(1),
+     email: z.string().email(),
+     password: z.string().min(6),
+   });
+
+   export default function handler(req: NextApiRequest, res: NextApiResponse) {
+     if (req.method !== "POST") {
+       return res.status(405).json({ message: "Method not allowed" });
+     }
+
+     // Validate the incoming request body
+     const result = registerSchema.safeParse(req.body);
+
+     if (!result.success) {
+       // If validation fails, send the errors back to the client
+       return res.status(400).json(result.error);
+     }
+
+     // Proceed with valid data
+     const { name, email, password } = result.data;
+     // Continue handling the registration logic...
+
+     res.status(200).json({ message: "User registered successfully!" });
+   }
+   ```
+
+   In this example, the API route validates the incoming POST request body against the `registerSchema`. If validation fails, it returns a 400 status code along with the validation errors. Otherwise, it proceeds with the validated data.
+
+4. **Using Zod in the Frontend**
+
+   You can also use Zod for validating form inputs on the client side before submitting to the server. For example, when a user fills out a form, you can validate the form data before sending it to the API.
+
+   ```ts
+   import { useState } from "react";
+   import { z } from "zod";
+
+   const registerSchema = z.object({
+     name: z.string().min(1),
+     email: z.string().email(),
+     password: z.string().min(6),
+   });
+
+   const RegisterForm = () => {
+     const [formData, setFormData] = useState({
+       name: "",
+       email: "",
+       password: "",
+     });
+     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+     const handleSubmit = async (e: React.FormEvent) => {
+       e.preventDefault();
+
+       // Validate the form data with Zod
+       const result = registerSchema.safeParse(formData);
+
+       if (!result.success) {
+         // Extract and display validation errors
+         const errorMessages = result.error.errors.reduce(
+           (acc: any, err) => ({ ...acc, [err.path[0]]: err.message }),
+           {}
+         );
+         setErrors(errorMessages);
+         return;
+       }
+
+       // If the form is valid, send the data to the server
+       const response = await fetch("/api/register", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(result.data),
+       });
+
+       const data = await response.json();
+       console.log(data);
+     };
+
+     return (
+       <form onSubmit={handleSubmit}>
+         <div>
+           <label>Name:</label>
+           <input
+             type="text"
+             value={formData.name}
+             onChange={(e) =>
+               setFormData({ ...formData, name: e.target.value })
+             }
+           />
+           {errors.name && <span>{errors.name}</span>}
+         </div>
+         <div>
+           <label>Email:</label>
+           <input
+             type="email"
+             value={formData.email}
+             onChange={(e) =>
+               setFormData({ ...formData, email: e.target.value })
+             }
+           />
+           {errors.email && <span>{errors.email}</span>}
+         </div>
+         <div>
+           <label>Password:</label>
+           <input
+             type="password"
+             value={formData.password}
+             onChange={(e) =>
+               setFormData({ ...formData, password: e.target.value })
+             }
+           />
+           {errors.password && <span>{errors.password}</span>}
+         </div>
+         <button type="submit">Register</button>
+       </form>
+     );
+   };
+
+   export default RegisterForm;
+   ```
+
+### Zod and TypeScript Integration
+
+Zod is built with TypeScript in mind, which means the types are automatically inferred based on the schema. You can also extract the TypeScript types from Zod schemas for reuse:
+
+```ts
+const userSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  age: z.number(),
+});
+
+// Infer TypeScript types from Zod schema
+type User = z.infer<typeof userSchema>;
+
+const user: User = {
+  name: "John Doe",
+  email: "john@example.com",
+  age: 25,
+};
+```
+
+This makes Zod a powerful tool for ensuring type safety across your Next.js applications.
+
+### Conclusion
+
+Zod is a great library for validating data in Next.js applications, both on the server and client sides. With its TypeScript-first approach, it offers seamless integration with your TypeScript codebase, making it easy to enforce strict type safety and data validation.
