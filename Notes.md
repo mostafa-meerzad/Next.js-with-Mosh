@@ -871,3 +871,194 @@ This opens a browser interface where you can see all the tables, records, and ev
 5. Utilize Prisma Studio for visual data management.
 
 By now, you should have a good understanding of how to set up Prisma, define schemas, work with migrations, and perform basic queries. Let me know if you’d like help with any specific part!
+
+## Authentication
+
+1. Set up NextAuth using their guides provided on the website
+2. configure a project in google
+3. and you're ready to use your app
+
+### Accessing sessions on the client
+
+next-auth provides a `useSession` hook that gives the essential info about the logged-in user
+
+```typescript
+"use client";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
+const Navbar = () => {
+  const { status, data: session } = useSession();
+
+  return (
+    <nav className="flex gap-2 bg-gray-500 p-3">
+      <Link href={"/"}>Home</Link>
+      <Link href={"/users"}>Users</Link>
+      <Link href={"/admin"}>Admin</Link>
+      <Link href={"/products"}>Products</Link>
+      {status === "loading" && <div>loading...</div>}
+      {status === "unauthenticated" && (
+        <Link href={"/api/auth/signin"}>Login</Link>
+      )}
+      {status === "authenticated" && (
+        <div>
+          {session.user!.name}
+          <Link href={"api/auth/signout"} className="ml-3">
+            sign out
+          </Link>
+        </div>
+      )}
+    </nav>
+  );
+};
+export default Navbar;
+```
+
+### Accessing sessions on the server
+
+next-auth also provides `getServerSession` you can use it to get user info in the server-side this function works both on the `page.tsx` and `route.tsx` files
+
+```typescript
+import Link from "next/link";
+import AddToChart from "./components/AddToCard";
+import ProductCard from "./components/ProductCard";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  console.log(session);
+  return (
+    <main>
+      {/* <h1>Hello Next.js</h1> */}
+      {
+        <h1>
+          Hello <span>{session && session.user!.name}</span>
+        </h1>
+      }
+      {/* using a normal "a" tag in routing causes all the resources to be fetched again */}
+      {/* <a href="/users">users</a> */}
+      {/* to fix it use "Link" component defined in next.js */}
+      <Link href={"/users"}>users</Link>
+      <ProductCard />
+    </main>
+  );
+}
+```
+
+### Handle signing-out
+
+all you need to do is to head to this route `/api/auth/singout` and this is the UI element responsible for showing it to the client `<Link href={"api/auth/signout"} className="ml-3">sign out</Link>` and next-auth takes care of the rest
+
+```typescript
+// import  from "@//client";
+import prisma from "@/prisma/client";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import NextAuth, { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+};
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+```
+
+```typescript "use client";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
+const Navbar = () => {
+  const { status, data: session } = useSession();
+
+  return (
+    <nav className="flex gap-2 bg-gray-500 p-3">
+      <Link href={"/"}>Home</Link>
+      <Link href={"/users"}>Users</Link>
+      <Link href={"/admin"}>Admin</Link>
+      <Link href={"/products"}>Products</Link>
+      {status === "loading" && <div>loading...</div>}
+      {status === "unauthenticated" && (
+        <Link href={"/api/auth/signin"}>Login</Link>
+      )}
+      {status === "authenticated" && (
+        <div>
+          {session.user!.name}
+          <Link href={"api/auth/signout"} className="ml-3">
+            sign out
+          </Link>
+        </div>
+      )}
+    </nav>
+  );
+};
+export default Navbar;
+```
+
+### Protecting Our Routes
+
+to protect our routes we use `middleware` with middleware we can run code before a request is completed, this way we can check if a user is trying to access a protected part of our application and see if they are allowed to do so.
+
+in the root of you project create a file with `middleware.ts` and put the following inside it
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+export function middleware(request: NextRequest) {
+  // here you handle the actions that must be taken before getting to a protected route
+  return NextResponse.redirect(new URL("/new-page", request.url));
+}
+// if you don't specify the 'config' object the middleware function is executed on every request
+
+// this config object is one of conventions Next.js is looking for
+export const config = {
+  // matcher object is a single string or an array of strings indicating routes
+  // you can also include parameters like "id" here
+  matcher: ["/users/:id*"],
+  // *: zero or more => /users/ or /users/:id or /users/:id/:something/:else
+  // +: one or more => /users/:id or /users/:something/:else not this /users/
+  // ?: zero or one => /users/ or /users/:id not this /users/:id/:something
+};
+```
+
+here is a simpler and shorter way of import and exporting of the middleware function
+
+```typescript
+// do this
+export { default } from "next-auth/middleware";
+
+// instead of these two lines
+import middleware from "next-auth/middleware";
+export default middleware;
+```
+
+### Using Adapters to Store User Info in DB
+
+In **NextAuth.js**, an **adapter** is used to connect the authentication system to your database. It allows NextAuth to manage user data, sessions, accounts, and more by integrating with a custom or supported database system, such as PostgreSQL, MySQL, MongoDB, or others.
+
+When using an adapter, NextAuth handles the following actions through the database:
+
+- **Storing user information:** User profiles, credentials, etc.
+- **Managing sessions:** Authentication tokens and session states.
+- **Linking accounts:** Associating external OAuth accounts (like Google, GitHub) with your users.
+- **Handling verification tokens:** For email sign-in or passwordless login.
+
+### Key points:
+
+- **Default behavior without an adapter:** NextAuth can work without a custom adapter by storing data in memory or relying on JWTs for session management. This is suitable for simple use cases but doesn't persist data across sessions (e.g., no user data stored in a database).
+- **With an adapter:** You can store all authentication-related data in your preferred database.
+
+for farther info got to the next-auth page and look for adapters
+
+### Configuring Credential Providers
+

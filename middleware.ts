@@ -9,14 +9,15 @@ export { default } from "next-auth/middleware";
 
 // when working with next-auth this middleware function is already implemented
 // export function middleware(request: NextRequest) {
-//   // here you handle the actions that bust be taken before getting to a protected route
+//   // here you handle the actions that must be taken before getting to a protected route
 //   return NextResponse.redirect(new URL("/new-page", request.url));
 // }
 // this config object is one of conventions Next.js is looking for
 export const config = {
   // mather object is a single string or an array of strings indicating routes
   // you can also include parameters like "id" here
-  matcher: ["/users/:id*"],
+  matcher: ["/dashboard/:path*"],
+  // matcher: ["/users/:id*"],
   // *: zero or more
   // +: zero or one
   // ?: zero or one
