@@ -1062,3 +1062,193 @@ for farther info got to the next-auth page and look for adapters
 
 ### Configuring Credential Providers
 
+## Send Emails with react-email
+
+for this project and version of Next run this command `npm i react-email@1.9.4 @react-email/components@0.0.7`
+
+then add this line `"preview-email": "email dev -p 3030"` in the scripts section of `package.json` file this gives a server to preview our email templates
+
+### Creating an Email template
+
+The version of **react-email** your instructor is using, specifically `"react-email: 1.9.4"` and `"@react-email/components: 0.0.7"`, seems to be more modular and specific to email design. This approach leverages pre-built components from `@react-email/components`, which abstracts away a lot of the complexity involved in designing email layouts.
+
+### How the Instructor's Code Works:
+
+#### Importing Components:
+
+```tsx
+import {
+  Html,
+  Body,
+  Container,
+  Text,
+  Link,
+  Preview,
+} from "@react-email/components";
+```
+
+These components simplify the process of creating well-structured HTML emails:
+
+- **Html**: Wraps the email's entire content.
+- **Body**: Defines the email body content.
+- **Container**: Provides a responsive layout container.
+- **Text**: Adds formatted text inside the email.
+- **Link**: For adding hyperlinks in the email.
+- **Preview**: Defines a brief preview of the email (often displayed as a preview text in the recipient's inbox).
+
+#### The Template Structure:
+
+```tsx
+const WelcomeTemplate = ({ name }: { name: string }) => {
+  return (
+    <Html>
+      <Preview>Welcome Aboard!</Preview>
+      <Body>
+        <Container>
+          <Text>Hello {name}</Text>
+          <Link href="https://google.com">google.com</Link>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
+```
+
+- **`<Preview>`**: This line provides a short preview of the email content (often shown beside the subject in the inbox).
+- **`<Body>` and `<Container>`**: These elements provide structure and layout to the email. The body wraps the content, while the container centers and structures it.
+- **`<Text>`**: Displays the personalized greeting using the `name` prop.
+- **`<Link>`**: Adds a clickable hyperlink (`google.com` in this case).
+
+### How to Set Up Your Project:
+
+#### Step 1: Install `react-email` and `@react-email/components`
+
+To set up the project the same way as your instructor:
+
+```bash
+npm install react-email @react-email/components
+```
+
+#### Step 2: Create Your Email Template
+
+You can create a TypeScript file for your email template (e.g., `WelcomeTemplate.tsx`) with the same structure as your instructor:
+
+```tsx
+// emails/WelcomeTemplate.tsx
+import React from "react";
+import {
+  Html,
+  Body,
+  Container,
+  Text,
+  Link,
+  Preview,
+} from "@react-email/components";
+
+const WelcomeTemplate = ({ name }: { name: string }) => {
+  return (
+    <Html>
+      <Preview>Welcome Aboard!</Preview>
+      <Body>
+        <Container>
+          <Text>Hello {name}</Text>
+          <Link href="https://google.com">google.com</Link>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
+
+export default WelcomeTemplate;
+```
+
+#### Step 3: Render and Send the Email
+
+Follow the same process to render the email and send it, as I described earlier, using your Next.js API route.
+
+This approach makes it easier to create email templates because you don't have to write raw HTML and inline CSS from scratch. It’s more like writing regular React components but with special email layout components tailored for email clients.
+
+### Previewing Emails
+
+first add this line in the `.gitignore` file `.react-email/` and run `npm run preview-email` running this command generates a bunch of files that doesn't need to be tracked and is generated every time you run that command
+
+### Styling Emails
+
+#### using pure CSS
+
+```typescript
+import React, { CSSProperties } from "react";
+import {
+  Html,
+  Body,
+  Container,
+  Text,
+  Link,
+  Preview,
+} from "@react-email/components";
+
+const WelcomeTemplate = ({ name }: { name: string }) => {
+  return (
+    <Html>
+      <Preview>Welcome Aboard!</Preview>
+      {/* <Body style={{background:"darkGray"}}> */}
+      <Body style={body}>
+        <Container>
+          <Text style={heading}>Hello {name}</Text>
+          <Link href="https://google.com">google.com</Link>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
+
+// annotate the style object with "CSSProperties" which is coming from "react" to get css intellisense
+const body: CSSProperties = {
+  background: "#fff",
+};
+
+const heading: CSSProperties = {
+  fontSize: "32px",
+  fontWeight: "bold",
+};
+export default WelcomeTemplate;
+```
+
+#### using TailwindCss
+
+```typescript
+import React, { CSSProperties } from "react";
+import {
+  Html,
+  Body,
+  Container,
+  Text,
+  Link,
+  Tailwind,
+  Preview,
+} from "@react-email/components";
+
+// just import "Tailwind" from "@react-email/components
+
+const WelcomeTemplate = ({ name }: { name: string }) => {
+  return (
+    <Html>
+      <Preview>Welcome Aboard!</Preview>
+      <Tailwind>
+        <Body className="bg-white">
+          <Container>
+            <Text className="text-3xl font-bold">Hello {name}</Text>
+            <Link href="https://google.com">google.com</Link>
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
+};
+
+export default WelcomeTemplate;
+```
+
+## Sending Emails
+
+from now on sending emails requires to have a domain which I can't afford right now
